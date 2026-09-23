@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KIỂM TRA THƯỜNG XUYÊN 1 TOÁN 11 - MÃ ĐỀ 1003</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+</head>
+<body class="bg-slate-100 min-h-screen p-2 md:p-6 font-sans">
+
+    <!-- MÀN HÌNH KHÓA FORM DO HẾT/CHƯA ĐẾN HẠN -->
+    <div id="locked-screen" class="hidden max-w-lg mx-auto bg-white p-8 rounded-xl shadow-xl text-center border border-red-200 mt-20">
+        <div class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">🔒</div>
+        <h2 class="text-2xl font-bold text-slate-800 mb-2">HỆ THỐNG ĐANG ĐÓNG</h2>
+        <p id="locked-message" class="text-base text-slate-600 font-medium mb-4"></p>
+        <div class="p-3 bg-slate-100 rounded-lg text-xs text-slate-500">
+            Thời gian mở hệ thống: <b>22:00 ngày 23/09/2026 đến 23:59 ngày 24/09/2026</b>        </div>
+    </div>
+
+    <!-- MÀN HÌNH NHẬP THÔNG TIN HỌC SINH -->
+    <div id="start-screen" class="hidden max-w-lg mx-auto bg-white p-6 md:p-8 rounded-xl shadow-xl border border-slate-200 mt-10">
+        <div class="text-center mb-6">
+            <h1 class="text-2xl font-bold text-blue-900">BÀI KIỂM TRA THƯỜNG XUYÊN 1</h1>
+            <p class="text-sm font-semibold text-slate-600">MÔN TOÁN 11 - MÃ ĐỀ 1003</p>
+        </div>
+
+        <form onsubmit="batDauLamBai(event)" class="space-y-4">
+            <div>
+                <label class="block text-sm font-bold text-slate-700 mb-1">Họ và tên học sinh: <span class="text-red-500">*</span></label>
+                <input type="text" id="student-name" required placeholder="Ví dụ: Nguyễn Văn A" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none border-slate-300">
+            </div>
+            <div>
+                <label class="block text-sm font-bold text-slate-700 mb-1">Lớp: <span class="text-red-500">*</span></label>
+                <input type="text" id="student-class" required placeholder="Ví dụ: 11A1" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none border-slate-300">
+            </div>
+
+            <div class="p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-800 space-y-1">
+                <p class="font-bold">⚠️ Quy định làm bài & Chống gian lận:</p>
+                <p>- Bài thi kéo dài <b>60 phút</b>, tự động đếm ngược cá nhân khi bắt đầu.</p>
+                <p>- Không chuyển sang tab khác hoặc thu nhỏ trình duyệt.</p>
+                <p>- Cho phép rời màn hình/chuyển tab <b>tối đa 3 lần</b>. Vượt quá 3 lần, bài thi sẽ <b>tự động nộp ngay lập tức</b>.</p>
+            </div>
+
+            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg shadow-md transition">
+                BẮT ĐẦU LÀM BÀI
+            </button>
+        </form>
+    </div>
+
+    <!-- MÀN HÌNH BÀI THI -->
+    <div id="quiz-screen" class="hidden max-w-4xl mx-auto bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden">
+        <!-- Header & Đồng hồ đếm ngược cá nhân -->
+        <div class="bg-blue-800 text-white p-4 flex flex-wrap justify-between items-center gap-2">
+            <div>
+                <h1 class="text-lg md:text-xl font-bold">TOÁN 11 - MÃ ĐỀ 1003</h1>
+                <p class="text-xs text-blue-200">
+                    Thí sinh: <b id="display-student-name" class="text-yellow-300">---</b> | 
+                    Lớp: <b id="display-student-class" class="text-yellow-300">---</b>
+                </p>
+                <div id="warning-badge" class="hidden mt-1 text-xs bg-red-500 text-white font-bold px-2 py-0.5 rounded inline-block">
+                    ⚠️ Vi phạm chuyển tab: <span id="warn-count">0</span>/3
+                </div>
+            </div>
+            <div class="bg-blue-900 px-4 py-2 rounded-lg text-center border border-blue-700">
+                <span class="text-xs block text-blue-300">THỜI GIAN CÒN LẠI</span>
+                <span id="timer" class="text-xl font-mono font-bold text-yellow-400">60:00</span>
+            </div>
+        </div>
+
+        <div class="p-4 md:p-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <!-- Khu vực câu hỏi chính -->
+            <div class="lg:col-span-3 flex flex-col justify-between min-h-[400px]">
+                <div>
+                    <div id="question-box" class="text-base md:text-lg font-semibold text-slate-800 mb-4 min-h-[80px]"></div>
+                    <div id="options-box" class="space-y-3"></div>
+                </div>
+
+                <!-- Điều hướng Câu trước / Câu sau -->
+                <div class="flex justify-between items-center mt-6 pt-4 border-t border-slate-200">
+                    <button onclick="changeQuestion(-1)" id="btn-prev" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium rounded-lg text-sm">
+                        ← Câu trước
+                    </button>
+                    <button onclick="changeQuestion(1)" id="btn-next" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg text-sm">
+                        Câu tiếp →
+                    </button>
+                </div>
+            </div>
+
+            <!-- Bảng ma trận câu hỏi -->
+            <div class="lg:col-span-1 border-t lg:border-t-0 lg:border-l border-slate-200 pt-4 lg:pt-0 lg:pl-4">
+                <h3 class="text-sm font-bold text-slate-700 mb-3">DANH SÁCH CÂU HỎI</h3>
+                <div id="matrix-box" class="grid grid-cols-5 gap-2 max-h-[300px] overflow-y-auto p-1"></div>
+                <button onclick="xacNhanNopBai()" class="mt-6 w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 rounded-lg shadow transition text-sm">
+                    NỘP BÀI THI
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MÀN HÌNH KẾT QUẢ -->
+    <div id="result-screen" class="hidden max-w-xl mx-auto bg-white p-8 rounded-xl shadow-xl text-center border border-slate-200 mt-10">
+        <div class="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">✓</div>
+        <h2 class="text-2xl font-bold text-slate-800 mb-2">BÀI THI ĐÃ ĐƯỢC GỬI!</h2>
+        <p class="text-sm text-slate-500 mb-6">Kết quả đã được ghi nhận và gửi thông báo trực tiếp tới giáo viên qua Email.</p>
+
+        <div class="bg-slate-50 p-6 rounded-lg border border-slate-200 text-left mb-6 space-y-3">
+            <div class="flex justify-between border-b pb-2">
+                <span class="text-slate-600">Thí sinh:</span>
+                <span id="res-student-info" class="font-bold text-slate-800">---</span>
+            </div>
+            <div class="flex justify-between border-b pb-2">
+                <span class="text-slate-600">Số câu đúng (+1/3đ):</span>
+                <span id="res-correct" class="font-bold text-green-600">0</span>
+            </div>
+            <div class="flex justify-between border-b pb-2">
+                <span class="text-slate-600">Số câu sai (-0.10đ):</span>
+                <span id="res-wrong" class="font-bold text-red-600">0</span>
+            </div>
+            <div class="flex justify-between border-b pb-2">
+                <span class="text-slate-600">Số câu bỏ trống (0đ):</span>
+                <span id="res-empty" class="font-bold text-slate-500">0</span>
+            </div>
+            <div class="flex justify-between border-b pb-2 text-sm text-slate-500">
+                <span>Điểm gốc (chưa làm tròn):</span>
+                <span id="res-raw-score" class="font-semibold text-slate-700">0.00</span>
+            </div>
+            <div class="flex justify-between text-lg font-bold pt-1">
+                <span class="text-slate-800">ĐIỂM CHÍNH THỨC (Làm tròn 0.5):</span>
+                <span id="res-final-score" class="text-blue-700 text-2xl">0.00 / 10.0</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- POPUP XÁC NHẬN NỘP BÀI -->
+    <div id="confirm-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-xl p-6 max-w-sm w-full text-center shadow-2xl">
+            <h3 class="text-lg font-bold text-slate-800 mb-2">Xác nhận nộp bài?</h3>
+            <p id="confirm-text" class="text-sm text-slate-600 mb-6"></p>
+            <div class="flex gap-3 justify-center">
+                <button onclick="closeModal()" class="px-4 py-2 bg-slate-200 text-slate-700 font-medium rounded-lg text-sm">Làm tiếp</button>
+                <button onclick="tinhDiemVaNop('Nộp tự nguyện')" class="px-4 py-2 bg-red-600 text-white font-medium rounded-lg text-sm">Đồng ý nộp</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const EMAIL_ENDPOINT = "https://formspree.io/f/myeyjany"; 
+
+        // CẤU HÌNH CỬA SỔ THỜI GIAN HỆ THỐNG MỞ FORM (00:00:00 -> 23:59:59 ngày 04/09/2026)
+        const START_TIME = new Date("2026-09-23T22:00:00+07:00").getTime();
+        const END_TIME   = new Date("2026-09-24T23:59:59+07:00").getTime();
+
+        const deThi = [
+          {
+            "id": 1,
+            "cauHoi": "Câu 1: Khẳng định nào sau đây ĐÚNG với mọi góc lượng giác $\\alpha$?",
+            "dapAn": ["A. $\\cos(-\\alpha) = -\\cos \\alpha$", "B. $\\sin(-\\alpha) = -\\sin \\alpha$", "C. $\\tan(-\\alpha) = \\tan \\alpha$", "D. $\\cot(-\\alpha) = \\cot \\alpha$"],
+            "dapAnDung": 1
+          },
+          {
+            "id": 2,
+            "cauHoi": "Câu 2: Số đo theo đơn vị radian của góc $135^\\circ$ là:",
+            "dapAn": ["A. $\\dfrac{\\pi}{4}$", "B. $\\dfrac{3\\pi}{4}$", "C. $\\dfrac{2\\pi}{3}$", "D. $\\dfrac{5\\pi}{6}$"],
+            "dapAnDung": 1
+          },
+          {
+            "id": 3,
+            "cauHoi": "Câu 3: Khẳng định nào sau đây SAI?",
+            "dapAn": ["A. $\\sin(a - b) = \\sin a \\cos b - \\cos a \\sin b$", "B. $\\cos(a + b) = \\cos a \\cos b - \\sin a \\sin b$", "C. $\\sin 2a = 2\\sin a \\cos a$", "D. $\\cos 2a = \\cos^2 a + \\sin^2 a$"],
+            "dapAnDung": 3
+          },
+          {
+            "id": 4,
+            "cauHoi": "Câu 4: Công thức biến đổi tổng thành tích nào sau đây ĐÚNG với mọi góc $a, b$?",
+            "dapAn": ["A. $\\cos a - \\cos b = 2\\sin\\dfrac{a+b}{2}\\sin\\dfrac{a-b}{2}$", "B. $\\sin a + \\sin b = 2\\sin\\dfrac{a+b}{2}\\cos\\dfrac{a-b}{2}$", "C. $\\sin a - \\sin b = 2\\sin\\dfrac{a-b}{2}\\sin\\dfrac{a+b}{2}$", "D. $\\cos a + \\cos b = 2\\cos\\dfrac{a+b}{2}\\sin\\dfrac{a-b}{2}$"],
+            "dapAnDung": 1
+          },
+          {
+            "id": 5,
+            "cauHoi": "Câu 5: Tập xác định $D$ của hàm số $y = \\tan x$ là:",
+            "dapAn": ["A. $D = \\mathbb{R} \\setminus \\{k\\pi, k \\in \\mathbb{Z}\\}$", "B. $D = \\mathbb{R} \\setminus \\left\\{\\dfrac{\\pi}{2} + k\\pi, k \\in \\mathbb{Z}\\right\\}$", "C. $D = \\mathbb{R} \\setminus \\left\\{\\dfrac{\\pi}{2} + k2\\pi, k \\in \\mathbb{Z}\\right\\}$", "D. $D = \\mathbb{R}$"],
+            "dapAnDung": 1
+          },
+          {
+            "id": 6,
+            "cauHoi": "Câu 6: Hàm số nào sau đây là hàm số chẵn trên tập xác định của nó?",
+            "dapAn": ["A. $y = \\sin x$", "B. $y = \\cos x$", "C. $y = \\tan x$", "D. $y = \\cot x$"],
+            "dapAnDung": 1
+          },
+          {
+            "id": 7,
+            "cauHoi": "Câu 7: Tập giá trị $T$ của hàm số $y = \\sin x$ là:",
+            "dapAn": ["A. $T = (-1; 1)$", "B. $T = [0; 1]$", "C. $T = [-1; 1]$", "D. $T = \\mathbb{R}$"],
+            "dapAnDung": 2
+          },
+          {
+            "id": 8,
+            "cauHoi": "Câu 8: Phương trình $\\cos x = \\cos \\alpha$ (với $\\alpha$ là một số thực cho trước) có họ nghiệm là:",
+            "dapAn": ["A. $x = \\alpha + k\\pi$ hoặc $x = -\\alpha + k\\pi$ ($k \\in \\mathbb{Z}$)", "B. $x = \\alpha + k2\\pi$ hoặc $x = \\pi - \\alpha + k2\\pi$ ($k \\in \\mathbb{Z}$)", "C. $x = \\alpha + k2\\pi$ hoặc $x = -\\alpha + k2\\pi$ ($k \\in \\mathbb{Z}$)", "D. $x = \\alpha + k\\pi$ hoặc $x = \\pi - \\alpha + k\\pi$ ($k \\in \\mathbb{Z}$)"],
+            "dapAnDung": 2
+          },
+          {
+            "id": 9,
+            "cauHoi": "Câu 9: Nghiệm của phương trình $\\sin x = 0$ là:",
+            "dapAn": ["A. $x = k2\\pi \\quad (k \\in \\mathbb{Z})$", "B. $x = \\dfrac{\\pi}{2} + k\\pi \\quad (k \\in \\mathbb{Z})$", "C. $x = k\\pi \\quad (k \\in \\mathbb{Z})$", "D. $x = \\dfrac{\\pi}{2} + k2\\pi \\quad (k \\in \\mathbb{Z})$"],
+            "dapAnDung": 2
+          },
+          {
+            "id": 10,
+            "cauHoi": "Câu 10: Cho góc lượng giác $\\alpha$ có điểm biểu diễn trên đường tròn lượng giác thuộc góc phần tư thứ IV. Mệnh đề nào sau đây ĐÚNG đối với mọi góc $\\alpha$ thỏa mãn điều kiện trên?",
+            "dapAn": ["A. $\\sin \\left( \\dfrac{\\alpha}{2} \\right) < 0$", "B. $\\cos \\left( \\dfrac{\\alpha}{2} \\right) > 0$", "C. $\\tan \\left( \\dfrac{\\alpha}{2} \\right) < 0$", "D. Chưa thể kết luận chắc chắn về dấu của $\\sin \\left( \\dfrac{\\alpha}{2} \\right)$ và $\\cos \\left( \\dfrac{\\alpha}{2} \\right)$."],
+            "dapAnDung": 3
+          },
+          {
+            "id": 11,
+            "cauHoi": "Câu 11: Xét các khẳng định sau về góc lượng giác $x$. Khẳng định nào sau đây là đẳng thức LUÔN ĐÚNG với mọi $x \\in \\mathbb{R}$?",
+            "dapAn": ["A. $\\sqrt{\\sin^4 x + 4\\cos^2 x} + \\sqrt{\\cos^4 x + 4\\sin^2 x} = 3$", "B. $\\sin^6 x + \\cos^6 x = 1 - 2\\sin^2 x \\cos^2 x$", "C. $\\dfrac{1 - \\cos x}{\\sin x} = \\cot \\dfrac{x}{2}$", "D. $\\sin(x + k\\pi) = (-1)^{k+1} \\sin x \\quad (k \\in \\mathbb{Z})$"],
+            "dapAnDung": 0
+          },
+          {
+            "id": 12,
+            "cauHoi": "Câu 12: Cho $a, b$ là hai góc lượng giác tùy ý. Đẳng thức nào sau đây SAI?",
+            "dapAn": ["A. $\\cos(a + b)\\cos(a - b) = \\cos^2 a - \\sin^2 b$", "B. $\\sin(a + b)\\sin(a - b) = \\sin^2 a - \\sin^2 b$", "C. $\\sin a \\sin b = \\dfrac{1}{2}[\\cos(a - b) - \\cos(a + b)]$", "D. $\\sin a + \\sin b = 2\\sin\\dfrac{a+b}{2}\\sin\\dfrac{a-b}{2}$"],
+            "dapAnDung": 3
+          },
+          {
+            "id": 13,
+            "cauHoi": "Câu 13: Cho $n$ là số nguyên dương ($n \\ge 1$) và $x \\neq k\\pi$ ($k \\in \\mathbb{Z}$). Đẳng thức thu gọn nào sau đây ĐÚNG đối với tổng lượng giác $S = \\sin x + \\sin 3x + \\sin 5x + \\dots + \\sin(2n - 1)x$?",
+            "dapAn": ["A. $S = \\dfrac{\\sin^2 (nx)}{\\sin x}$", "B. $S = \\dfrac{\\sin(nx) \\cdot \\sin((n+1)x)}{\\sin x}$", "C. $S = \\dfrac{1 - \\cos(2nx)}{2\\sin x}$", "D. $S = \\dfrac{\\sin(2nx)}{2\\sin x}$"],
+            "dapAnDung": 0
+          },
+          {
+            "id": 14,
+            "cauHoi": "Câu 14: Tập xác định $D$ của hàm số $y = \\dfrac{1}{\\tan x - \\cot x}$ được viết dưới dạng thu gọn nhất là:",
+            "dapAn": ["A. $D = \\mathbb{R} \\setminus \\left\\{ \\dfrac{k\\pi}{2} \\;\\middle\\vert{}\\; k \\in \\mathbb{Z} \\right\\}$", "B. $D = \\mathbb{R} \\setminus \\left\\{ \\dfrac{\\pi}{4} + \\dfrac{k\\pi}{2} \\;\\middle\\vert{}\\; k \\in \\mathbb{Z} \\right\\}$", "C. $D = \\mathbb{R} \\setminus \\left\\{ \\dfrac{k\\pi}{4} \\;\\middle\\vert{}\\; k \\in \\mathbb{Z} \\right\\}$", "D. $D = \\mathbb{R} \\setminus \\left\\{ k\\pi \\;\\middle\\vert{}\\; k \\in \\mathbb{Z} \\right\\}$"],
+            "dapAnDung": 2
+          },
+          {
+            "id": 15,
+            "cauHoi": "Câu 15: Chu kỳ tuần hoàn nhỏ nhất $T_0$ của hàm số $y = \\vert{}\\sin x\\vert{} + \\vert{}\\cos x\\vert{}$ là:",
+            "dapAn": ["A. $T_0 = 2\\pi$", "B. $T_0 = \\pi$", "C. $T_0 = \\dfrac{\\pi}{2}$", "D. $T_0 = \\dfrac{\\pi}{4}$"],
+            "dapAnDung": 2
+          },
+          {
+            "id": 16,
+            "cauHoi": "Câu 16: Xét các phát biểu sau về đồ thị của các hàm số lượng giác trên tập xác định của chúng:<br>(I) Đồ thị hàm số $y = \\cos x$ nhận trục tung $Oy$ làm trục đối xứng.<br>(II) Đồ thị hàm số $y = \\sin x$ nhận gốc tọa độ $O$ làm tâm đối xứng.<br>(III) Đồ thị hàm số $y = \\tan x$ nhận điểm $I(\\pi; 0)$ làm tâm đối xứng.<br>(IV) Đồ thị hàm số $y = \\cot x$ có các đường tiệm cận đứng là các đường thẳng $x = \\dfrac{\\pi}{2} + k\\pi \\; (k \\in \\mathbb{Z})$.<br>Số phát biểu ĐÚNG trong 4 phát biểu trên là:",
+            "dapAn": ["A. 1", "B. 2", "C. 3", "D. 4"],
+            "dapAnDung": 2
+          },
+          {
+            "id": 17,
+            "cauHoi": "Câu 17: Tập nghiệm của phương trình $\\sin 2x + \\cos x = 0$ khi biểu diễn trên đường tròn lượng giác sẽ tương ứng với 3 điểm phân biệt. Họ nghiệm duy nhất gộp chung cả 3 điểm biểu diễn này là:",
+            "dapAn": ["A. $x = \\dfrac{\\pi}{2} + \\dfrac{k2\\pi}{3} \\quad (k \\in \\mathbb{Z})$", "B. $x = -\\dfrac{\\pi}{6} + \\dfrac{k\\pi}{3} \\quad (k \\in \\mathbb{Z})$", "C. $x = \\dfrac{\\pi}{6} + \\dfrac{k\\pi}{3} \\quad (k \\in \\mathbb{Z})$", "D. $x = -\\dfrac{\\pi}{2} + \\dfrac{k\\pi}{3} \\quad (k \\in \\mathbb{Z})$"],
+            "dapAnDung": 0
+          },
+          {
+            "id": 18,
+            "cauHoi": "Câu 18: Ký hiệu $\\arcsin(a)$ là góc $\\alpha \\in \\left[-\\dfrac{\\pi}{2}; \\dfrac{\\pi}{2}\\right]$ sao cho $\\sin \\alpha = a$. Mệnh đề nào sau đây ĐÚNG khi xét hàm ẩn $P(x) = \\arcsin(\\sin x)$ trên toàn bộ tập số thực $\\mathbb{R}$?",
+            "dapAn": ["A. $P(x) = x$ với mọi $x \\in \\mathbb{R}$.", "B. $P(x) = x$ khi và chỉ khi $x \\in \\left[-\\dfrac{\\pi}{2}; \\dfrac{\\pi}{2}\\right]$.", "C. $P(x) = \\pi - x$ khi $x \\in \\left[\\dfrac{\\pi}{2}; \\dfrac{3\\pi}{2}\\right]$.", "D. Cả B và C đều đúng."],
+            "dapAnDung": 3
+          },
+          {
+            "id": 19,
+            "cauHoi": "Câu 19: Cho góc lượng giác $\\alpha \\in \\left(\\pi; \\dfrac{3\\pi}{2}\\right)$ thỏa mãn $\\tan \\alpha = a$ ($a > 0$). Giá trị của biểu thức $$M = \\dfrac{2\\sin(\\pi - \\alpha) - 3\\cos\\left(\\dfrac{\\pi}{2} + \\alpha\\right)}{\\cos(-\\alpha) + \\sin\\left(\\dfrac{3\\pi}{2} - \\alpha\\right)}$$ tính theo $a$ là:",
+            "dapAn": ["A. $\\dfrac{5a}{2}$", "B. $-\\dfrac{5a}{2}$", "C. $\\dfrac{a}{2}$", "D. $-\\dfrac{a}{2}$"],
+            "dapAnDung": 1
+          },
+          {
+            "id": 20,
+            "cauHoi": "Câu 20: Trên đường tròn lượng giác, gọi $M$ là điểm biểu diễn cho góc lượng giác $\\alpha$. Biết $M$ nằm ở góc phần tư thứ II và khoảng cách từ $M$ đến trục tung bằng 3 lần khoảng cách từ $M$ đến trục hoành. Giá trị của biểu thức $P = \\sin \\alpha \\cdot \\cos \\alpha$ bằng:",
+            "dapAn": ["A. $-\\dfrac{3}{10}$", "B. $\\dfrac{3}{10}$", "C. $-\\dfrac{\\sqrt{3}}{10}$", "D. $\\dfrac{\\sqrt{3}}{10}$"],
+            "dapAnDung": 0
+          },
+          {
+            "id": 21,
+            "cauHoi": "Câu 21: Cho hai góc $a, b$ thỏa mãn $\\cos a = \\dfrac{1}{3}$ và $\\cos b = \\dfrac{1}{4}$. Giá trị của biểu thức $P = \\cos(a + b) \\cdot \\cos(a - b)$ bằng:",
+            "dapAn": ["A. $-\\dfrac{119}{144}$", "B. $-\\dfrac{107}{144}$", "C. $\\dfrac{107}{144}$", "D. $\\dfrac{119}{144}$"],
+            "dapAnDung": 0
+          },
+          {
+            "id": 22,
+            "cauHoi": "Câu 22: Cho $\\tan a$ và $\\tan b$ là hai nghiệm của phương trình bậc hai $x^2 - px + q = 0$ (với $q \\neq 1$). Giá trị của biểu thức $A = \\cos^2(a+b) + p \\cdot \\sin(a+b) \\cdot \\cos(a+b) + q \\cdot \\sin^2(a+b)$ tính theo $p, q$ là:",
+            "dapAn": ["A. 1", "B. $p + q$", "C. $q$", "D. $p$"],
+            "dapAnDung": 0
+          },
+          {
+            "id": 23,
+            "cauHoi": "Câu 23: Cho hàm số $y = \\sqrt{3 + \\cos 2x} - 2\\sin^2 x$. Gọi $M$ và $m$ lần lượt là giá trị lớn nhất và giá trị nhỏ nhất của hàm số trên $\\mathbb{R}$. Tích $M \\cdot m$ bằng:",
+            "dapAn": ["A. $2\\sqrt{2} - 4$", "B. 2", "C. 0", "D. $2\\sqrt{3}$"],
+            "dapAnDung": 0
+          },
+          {
+            "id": 24,
+            "cauHoi": "Câu 24: Cho hàm số lượng giác dạng $y = a \\cdot \\sin(bx) + c$ (với $a > 0, b > 0$). Biết rằng hàm số có tập giá trị là $[-1; 5]$ và chu kỳ tuần hoàn nhỏ nhất $T = \\pi$. Giá trị của tổng $S = a + b + c$ bằng:",
+            "dapAn": ["A. 7", "B. 8", "C. 5", "D. 6"],
+            "dapAnDung": 0
+          },
+          {
+            "id": 25,
+            "cauHoi": "Câu 25: Cho phương trình $\\cos \\left(3x - \\dfrac{\\pi}{6}\\right) = -\\dfrac{\\sqrt{3}}{2}$. Tổng tất cả các nghiệm của phương trình thuộc khoảng $(0; \\pi)$ bằng:",
+            "dapAn": ["A. $\\dfrac{7\\pi}{9}$", "B. $\\dfrac{3\\pi}{2}$", "C. $\\dfrac{5\\pi}{3}$", "D. $\\pi$"],
+            "dapAnDung": 0
+          },
+          {
+            "id": 26,
+            "cauHoi": "Câu 26: Có bao nhiêu giá trị nguyên của tham số $m$ để phương trình $(m + 1)\\sin\\left(x - \\dfrac{\\pi}{3}\\right) = 2m - 1$ có nghiệm?",
+            "dapAn": ["A. 1", "B. 2", "C. 3", "D. 4"],
+            "dapAnDung": 2
+          },
+          {
+            "id": 27,
+            "cauHoi": "Câu 27: Số nghiệm phân biệt thuộc đoạn $[0; 4\\pi]$ của phương trình $\\dfrac{\\sin 3x}{\\cos x + 1} = 0$ là:",
+            "dapAn": ["A. 12", "B. 11", "C. 9", "D. 10"],
+            "dapAnDung": 1
+          },
+          {
+            "id": 28,
+            "cauHoi": "Câu 28:<br><b>Đoạn thông tin:</b> Độ sâu mực nước $h(t)$ (đơn vị: mét) tại một cảng biển phụ thuộc vào thời gian $t$ (giờ, $0 \\le t \\le 24$, với $t = 0$ ứng với 00:00 giờ đêm) trong một ngày được mô hình hóa bằng hàm số lượng giác:<br>$$h(t) = 4\\cos^2\\left(\\dfrac{\\pi t}{12}\\right) + 2\\sqrt{3}\\sin\\left(\\dfrac{\\pi t}{6}\\right) + 1$$<br>Một tàu container tải trọng lớn chỉ có thể di chuyển an toàn vào/ra cảng khi độ sâu mực nước đạt tối thiểu $5\\text{ m}$ ($h(t) \\ge 5$).<br><br><b>Câu hỏi:</b> Bằng cách dùng công thức hạ bậc và biến đổi $h(t)$ về dạng $R\\sin(\\omega t + \\varphi) + C$, ta xác định được khoảng thời gian liên tục dài nhất trong ngày mà mực nước đủ sâu cho tàu hoạt động là $a$ (giờ). Để tàu vào cảng và hoàn thành việc dỡ hàng mất đúng 2 giờ trước khi mực nước lại hạ xuống dưới $5\\text{ m}$, gọi $t_0$ (giờ) là thời điểm muộn nhất trong ngày mà tàu có thể bắt đầu tiến vào cảng. Tính giá trị biểu thức $S = a + t_0$?",
+            "dapAn": ["A. $S = 18$", "B. $S = 20$", "C. $S = 16$", "D. $S = 22$"],
+            "dapAnDung": 0
+          },
+          {
+            "id": 29,
+            "cauHoi": "Câu 29:<br><b>Đoạn thông tin:</b> Tốc độ hấp thụ năng lượng mặt trời $E(t)$ (đơn vị: kW) của một hệ thống pin xoay tự động trong khoảng thời gian 12 giờ ban ngày ($t \\in [0; 12]$, với $t = 0$ tương ứng lúc 6:00 sáng) được xác định bởi công thức biến đổi tích:<br>$$E(t) = \\sin\\left(\\dfrac{\\pi t}{12}\\right) \\cdot \\cos\\left(\\dfrac{\\pi t}{12} - \\dfrac{\\pi}{6}\\right)$$<br>Nhờ công thức biến đổi tích thành tổng, ta đưa $E(t)$ về dạng hàm số sóng đơn giản để xác định được công suất cực đại $E_{\\max}$ mà hệ thống có thể đạt được trong ngày.<br><br><b>Câu hỏi:</b> Trong khoảng thời gian $t \\in [0; 12]$, gọi $t_1$ và $t_2$ ($t_1 \\neq t_2$) là hai thời điểm mà công suất hấp thụ năng lượng của hệ thống đạt đúng $50\\%$ công suất cực đại ($E(t) = 0.5 E_{\\max}$). Tính tổng hai thời điểm $T = t_1 + t_2$?",
+            "dapAn": ["A. $T = 6$", "B. $T = 8$", "C. $T = 10$", "D. $T = 12$"],
+            "dapAnDung": 1
+          },
+          {
+            "id": 30,
+            "cauHoi": "Câu 30:<br><b>Đoạn thông tin:</b> Công thức nhân ba $\\cos 3x = 4\\cos^3 x - 3\\cos x$ cho phép đưa phương trình lượng giác $\\cos 3x = m$ về phương trình đại số bậc ba theo ẩn $t = \\cos x$: $$4t^3 - 3t - m = 0$$ Theo Định lý Viète cho phương trình $At^3 + Bt^2 + Ct + D = 0$ ($A \\neq 0$), nếu phương trình có 3 nghiệm $t_1, t_2, t_3$ thì:<br>$$t_1 + t_2 + t_3 = -\\dfrac{B}{A}$$ $$t_1 t_2 + t_2 t_3 + t_3 t_1 = \\dfrac{C}{A}$$ $$t_1 t_2 t_3 = -\\dfrac{D}{A}$$<br><b>Câu hỏi:</b> Cho phương trình lượng giác $\\cos 3x = \\dfrac{1}{3}$. Phương trình này có 3 nghiệm $x_1, x_2, x_3$ phân biệt thuộc khoảng $(0; \\pi)$. Đặt $t_1 = \\cos x_1, t_2 = \\cos x_2, t_3 = \\cos x_3$. Giá trị của biểu thức: $$P = \\dfrac{1}{1 + \\cos x_1} + \\dfrac{1}{1 + \\cos x_2} + \\dfrac{1}{1 + \\cos x_3}$$ được viết dưới dạng phân số tối giản $\\dfrac{a}{b}$ (với $a, b \\in \\mathbb{N}^*$). Tính giá trị tổng $S = a + b$?",
+            "dapAn": ["A. $S = 31$", "B. $S = 29$", "C. $S = 35$", "D. $S = 25$"],
+            "dapAnDung": 0
+          }
+        ];
+
+        let currentIndex = 0;
+        let userAnswers = new Array(deThi.length).fill(null);
+        let timeLeft = 3600; // 60 phút cá nhân hóa khi bấm Bắt đầu
+        let timerInterval;
+
+        let studentName = "";
+        let studentClass = "";
+        let violationCount = 0;
+        let isSubmitted = false;
+        let isTabHidden = false; // Biến cờ ngăn đếm lặp 2 lần cùng lúc khi chuyển tab
+
+        function checkAccessTime() {
+            const now = new Date().getTime();
+            const lockedScreen = document.getElementById('locked-screen');
+            const startScreen = document.getElementById('start-screen');
+            const msg = document.getElementById('locked-message');
+
+            if (now < START_TIME) {
+                msg.innerText = "Hiện tại chưa đến giờ mở bài thi. Vui lòng quay lại sau!";
+                lockedScreen.classList.remove('hidden');
+                startScreen.classList.add('hidden');
+                return false;
+            } else if (now > END_TIME) {
+                msg.innerText = "Thời gian làm bài thi đã kết thúc. Bạn không thể truy cập nữa!";
+                lockedScreen.classList.remove('hidden');
+                startScreen.classList.add('hidden');
+                return false;
+            }
+
+            lockedScreen.classList.add('hidden');
+            startScreen.classList.remove('hidden');
+            return true;
+        }
+
+        function batDauLamBai(event) {
+            event.preventDefault();
+            studentName = document.getElementById('student-name').value.trim();
+            studentClass = document.getElementById('student-class').value.trim();
+
+            if (!studentName || !studentClass) {
+                alert("Vui lòng điền đầy đủ Họ tên và Lớp!");
+                return;
+            }
+
+            document.getElementById('display-student-name').innerText = studentName;
+            document.getElementById('display-student-class').innerText = studentClass;
+
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('quiz-screen').classList.remove('hidden');
+
+            renderMatrix();
+            showQuestion(0);
+            startTimer();
+            setupAntiCheat();
+        }
+
+        function setupAntiCheat() {
+            function handleViolation() {
+                if (isSubmitted || isTabHidden) return;
+
+                isTabHidden = true;
+                violationCount++;
+
+                const warnBadge = document.getElementById('warning-badge');
+                warnBadge.classList.remove('hidden');
+                document.getElementById('warn-count').innerText = violationCount;
+
+                // Vi phạm quá 3 lần (lần thứ 4) tự động nộp bài
+                if (violationCount > 3) {
+                    alert(`⛔ CẢNH BÁO VI PHẠM QUÁ HẠN!\n\nBạn đã rời khỏi trang bài thi quá 3 lần (${violationCount} lần). Hệ thống tự động khóa và nộp bài thi ngay lập tức.`);
+                    tinhDiemVaNop("Tự động nộp do vi phạm chuyển tab quá 3 lần");
+                } else {
+                    alert(`⚠️ CẢNH BÁO VI PHẠM (Lần ${violationCount}/3)!\n\nBạn vừa chuyển tab hoặc rời khỏi màn hình bài thi.\nNếu vi phạm quá 3 lần, bài thi sẽ tự động bị khóa và nộp ngay lập tức!`);
+                }
+            }
+
+            function handleFocus() {
+                isTabHidden = false;
+            }
+
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) {
+                    handleViolation();
+                } else {
+                    handleFocus();
+                }
+            });
+
+            window.addEventListener('blur', handleViolation);
+            window.addEventListener('focus', handleFocus);
+        }
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                let m = Math.floor(timeLeft / 60);
+                let s = timeLeft % 60;
+                document.getElementById('timer').innerText = `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    tinhDiemVaNop("Tự động nộp do hết giờ");
+                }
+            }, 1000);
+        }
+
+        function renderMatrix() {
+            const box = document.getElementById('matrix-box');
+            box.innerHTML = '';
+            deThi.forEach((_, i) => {
+                let btn = document.createElement('button');
+                btn.id = `matrix-btn-${i}`;
+                btn.className = `p-2 text-xs font-semibold rounded border transition ${userAnswers[i] !== null ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-slate-700 border-slate-300'}`;
+                btn.innerText = i + 1;
+                btn.onclick = () => showQuestion(i);
+                box.appendChild(btn);
+            });
+        }
+
+        function showQuestion(index) {
+            currentIndex = index;
+            const q = deThi[index];
+            document.getElementById('question-box').innerHTML = q.cauHoi;
+            
+            let optionsHtml = '';
+            q.dapAn.forEach((da, i) => {
+                let checked = userAnswers[index] === i ? 'checked' : '';
+                optionsHtml += `
+                    <label class="flex items-center space-x-3 p-3 rounded-lg border cursor-pointer hover:bg-slate-50 transition ${userAnswers[index] === i ? 'border-blue-500 bg-blue-50' : 'border-slate-200'}">
+                        <input type="radio" name="option" value="${i}" ${checked} onchange="selectAnswer(${i})" class="w-4 h-4 text-blue-600">
+                        <span class="text-sm md:text-base text-slate-700">${da}</span>
+                    </label>
+                `;
+            });
+            document.getElementById('options-box').innerHTML = optionsHtml;
+
+            document.getElementById('btn-prev').disabled = index === 0;
+            document.getElementById('btn-next').disabled = index === deThi.length - 1;
+
+            renderMathInElement(document.getElementById('question-box'), { delimiters: [{left: "$$", right: "$$", display: true}, {left: "$", right: "$", display: false}] });
+            renderMathInElement(document.getElementById('options-box'), { delimiters: [{left: "$$", right: "$$", display: true}, {left: "$", right: "$", display: false}] });
+        }
+
+        function selectAnswer(ansIndex) {
+            userAnswers[currentIndex] = ansIndex;
+            const btn = document.getElementById(`matrix-btn-${currentIndex}`);
+            btn.className = 'p-2 text-xs font-semibold rounded border transition bg-blue-600 text-white border-blue-600';
+            showQuestion(currentIndex);
+        }
+
+        function changeQuestion(step) {
+            let next = currentIndex + step;
+            if (next >= 0 && next < deThi.length) {
+                showQuestion(next);
+            }
+        }
+
+        function xacNhanNopBai() {
+            let answered = userAnswers.filter(a => a !== null).length;
+            document.getElementById('confirm-text').innerText = `Bạn đã làm ${answered}/${deThi.length} câu. Bạn có chắc chắn muốn nộp bài không?`;
+            document.getElementById('confirm-modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('confirm-modal').classList.add('hidden');
+        }
+
+        function tinhDiemVaNop(lyDoNop = "Nộp bài tự nguyện") {
+            if (isSubmitted) return;
+            isSubmitted = true;
+
+            clearInterval(timerInterval);
+            closeModal();
+
+            let correct = 0;
+            let wrong = 0;
+            let empty = 0;
+
+            deThi.forEach((q, i) => {
+                if (userAnswers[i] === null) {
+                    empty++;
+                } else if (userAnswers[i] === q.dapAnDung) {
+                    correct++;
+                } else {
+                    wrong++;
+                }
+            });
+
+            // Tính điểm thô chính xác: Đúng (+1/3), Sai (-0.1)
+            let rawScore = (correct * (1 / 3)) - (wrong * 0.1);
+            if (rawScore < 0) rawScore = 0;
+            if (rawScore > 10) rawScore = 10;
+
+            // Quy tắc làm tròn điểm về mốc 0.5 gần nhất
+            let roundedScore = Math.round(rawScore * 2) / 2;
+
+            document.getElementById('quiz-screen').classList.add('hidden');
+            document.getElementById('result-screen').classList.remove('hidden');
+
+            const congDiemTho = (correct * (1 / 3)).toFixed(2);
+            const truDiemTho = (wrong * 0.1).toFixed(2);
+
+            document.getElementById('res-student-info').innerText = `${studentName} - Lớp ${studentClass}`;
+            document.getElementById('res-correct').innerText = `${correct} câu (+${congDiemTho}đ)`;
+            document.getElementById('res-wrong').innerText = `${wrong} câu (-${truDiemTho}đ)`;
+            document.getElementById('res-empty').innerText = `${empty} câu (0đ)`;
+            document.getElementById('res-raw-score').innerText = `${rawScore.toFixed(2)} điểm`;
+            document.getElementById('res-final-score').innerText = `${roundedScore.toFixed(2)} / 10.00`;
+
+            // Gửi dữ liệu về Gmail qua Formspree
+            // Gửi dữ liệu về Gmail qua Formspree
+fetch(EMAIL_ENDPOINT, {
+    method: 'POST',
+    headers: { 
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+    },
+    body: JSON.stringify({
+        subject: `[KẾT QUẢ THI] ${studentName} - Lớp ${studentClass} (ĐIỂM: ${roundedScore.toFixed(2)})`,
+        hoTen: studentName,
+        lop: studentClass,
+        diemChinhThuc: roundedScore.toFixed(2),
+        diemGoc: rawScore.toFixed(2),
+        soCauDung: correct,
+        soCauSai: wrong,
+        soCauBoTrong: empty,
+        soLanViPhamChuyenTab: violationCount,
+        trangThaiNop: lyDoNop,
+        thoiGianConLai: document.getElementById('timer').innerText
+    })
+})
+.then(response => {
+    if (response.ok) {
+        console.log("Gửi kết quả thành công!");
+    } else {
+        console.error("Lỗi khi gửi kết quả Formspree.");
+    }
+})
+.catch(error => console.error("Lỗi kết nối:", error));
+        }
+
+        window.onload = checkAccessTime;
+    </script>
+</body>
+</html>
